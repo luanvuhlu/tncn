@@ -22,7 +22,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: thue-luanvv # Replace with your actual project name
+          projectName: tncn
           directory: public
-          # Optional: Use custom domain
-          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
