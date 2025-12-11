@@ -54,25 +54,46 @@ function readGroup(group) {
 }
 
 function calculate() {
+    // New tax regulations from 2026
+    // let TAX_RATES = [0.05, 0.1, 0.2, 0.3, 0.35];
+    // let TAX_BANDS = [10_000_000, 30_000_000, 60_000_000, 100_000_000, Infinity];
+    // let INDIVIDUAL_DEDUCTION = 15_500_000;
+    // let DEPENDENT_DEDUCTION = 6_200_000;
 
+    let TAX_RATES = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35];
+    let TAX_BANDS = [5_000_000, 10_000_000, 18_000_000, 32_000_000, 52_000_000, 80_000_000, Infinity];
+    let INDIVIDUAL_DEDUCTION = 11_000_000;
+    let DEPENDENT_DEDUCTION = 4_400_000;
     let income = document.querySelector("input[name='income']").value
     let npt = document.querySelector("input[name='npt']").value
     let taxDone = document.querySelector("input[name='taxDone']").value
-    let eachMonth = income / 12 - 11000000 - npt * 4400000
-    let taxEachMonth = [
-        eachMonth >= 5000000 ? 5000000 * 0.05 : eachMonth * 0.05,
-        eachMonth >= 10000000 ? (10000000 - 5000000) * 0.1 : (eachMonth - 5000000) * 0.1,
-        eachMonth >= 18000000 ? (18000000 - 10000000) * 0.15 : (eachMonth - 10000000) * 0.15,
-        eachMonth >= 32000000 ? (32000000 - 18000000) * 0.2 : (eachMonth - 18000000) * 0.2,
-        eachMonth >= 52000000 ? (52000000 - 32000000) * 0.25 : (eachMonth - 32000000) * 0.25,
-        eachMonth >= 80000000 ? (80000000 - 52000000) * 0.3 : (eachMonth - 52000000) * 0.3,
-        (eachMonth - 80000000) * 0.35,
-    ].map(a => a > 0 ? a : 0).reduce((a, b) => a + b)
-    let total = Math.floor(taxEachMonth * 12)
+    let eachMonth = income / 12 - INDIVIDUAL_DEDUCTION - npt * DEPENDENT_DEDUCTION
+    let taxEachMonth = [];
+    for (let i = 0; i < TAX_RATES.length; i++) {
+        let lowerBound = i === 0 ? 0 : TAX_BANDS[i - 1];
+        let upperBound = TAX_BANDS[i];
+        
+        if (eachMonth >= upperBound) {
+            taxEachMonth.push((upperBound - lowerBound) * TAX_RATES[i]);
+        } else if (eachMonth > lowerBound) {
+            taxEachMonth.push((eachMonth - lowerBound) * TAX_RATES[i]);
+        } else {
+            taxEachMonth.push(0);
+        }
+    }
+    let taxInEachRange = taxEachMonth.map(a => a > 0 ? a : 0).map(a => a * 12);
     let formatter = new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND',
     });
+    for (let i = 0; i < TAX_RATES.length; i++) {
+        if (taxInEachRange[i] > 0) {
+            let ratePercent = (TAX_RATES[i] * 100) + '%';
+            console.log(`Thuế suất ${ratePercent}: ${formatter.format(taxInEachRange[i])}`);
+        }
+    }
+    let taxEachMonthTotal = taxInEachRange.reduce((a, b) => a + b)
+    let total = Math.floor(taxEachMonthTotal)
     document.querySelector("#taxTotal").style.display = 'block'
     document.querySelector("#taxRemain").style.display = 'none'
     if (total > 0) {
